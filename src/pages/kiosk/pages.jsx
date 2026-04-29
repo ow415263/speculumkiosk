@@ -219,7 +219,7 @@ export function ArtifactsPage() {
             alt="BO the Bizgeist"
             className="bo-logo"
           />
-          <p className="bo-subheading">create like a scientist edit like a child</p>
+          <p className="bo-subheading">create like a child, edit like a scientist</p>
         </div>
       </div>
       <div className="arc-carousel-host">
@@ -300,7 +300,7 @@ const CLOSE_DRAG_PX = 110;
 const SIGNUP_ENDPOINT = import.meta.env.VITE_SIGNUP_ENDPOINT || '';
 
 export function SignUpSheet({ open, onClose }) {
-  const qrSrc = ASSET('testflight-qr-placeholder.png');
+  const qrSrc = ASSET('specuflux-qr.jpg');
   const [dragging, setDragging] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
@@ -410,19 +410,8 @@ export function SignUpSheet({ open, onClose }) {
               </button>
             </form>
           )}
-          <div className="bottom-sheet-qrs">
-            <div className="qr-tile">
-              <span className="qr-tile-label">test the app</span>
-              <img src={qrSrc} alt="" className="qr-tile-img" />
-            </div>
-            <div className="qr-tile">
-              <span className="qr-tile-label">test the game</span>
-              <img src={qrSrc} alt="" className="qr-tile-img" />
-            </div>
-            <div className="qr-tile">
-              <span className="qr-tile-label">follow on socials</span>
-              <img src={qrSrc} alt="" className="qr-tile-img" />
-            </div>
+          <div className="bottom-sheet-qr-single">
+            <img src={qrSrc} alt="SpecuFlux QR code" className="bottom-sheet-qr-img" />
           </div>
         </div>
       </div>

@@ -489,32 +489,21 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.bottom-sheet-qrs {
+/* Single SpecuFlux QR centred in the bottom sheet — sized large enough to
+   scan comfortably from kiosk-viewer distance. */
+.bottom-sheet-qr-single {
   display: flex;
-  gap: 100px;
-  align-items: flex-start;
   justify-content: center;
-  margin-top: 70px;
+  margin-top: 56px;
 }
-.qr-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
-.qr-tile-label {
-  font-family: var(--sans);
-  font-size: 18px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.92);
-}
-.qr-tile-img {
-  width: 130px;
-  height: 130px;
-  border-radius: 6px;
+.bottom-sheet-qr-img {
+  display: block;
+  width: 220px;
+  height: 220px;
+  border-radius: 12px;
   background: #fff;
   padding: 6px;
-  display: block;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
 }
 
 /* Phone screen (real screenshot inside iOS-shaped frame) */
