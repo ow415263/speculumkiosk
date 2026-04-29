@@ -44,7 +44,14 @@ function shortestDelta(targetInt, toIdx) {
   return delta;
 }
 
-function NavItem({ index, item, dialPos, isActive, onTap, shifted, spacing }) {
+function NavItem({ index, item, dialPos, isActive, onTap, shifted, spacing, activeIndex }) {
+  // Static slot-distance for size/colour so each ring (active / ±1 / ±2)
+  // gets its own treatment. CSS transitions smooth the change between rings
+  // when activeIndex flips. Shifted twins are wrap-around copies — they only
+  // appear briefly during a wrap, so always render them with the outer style.
+  const wrapDist = Math.abs(index - activeIndex);
+  const slotDist = shifted ? 2 : Math.min(wrapDist, N - wrapDist);
+
   const xMV = useTransform(dialPos, (p) => {
     const d = getDist(index, p);
     return (shifted ? d + N : d) * spacing;
@@ -69,6 +76,15 @@ function NavItem({ index, item, dialPos, isActive, onTap, shifted, spacing }) {
     if (eff > 2) return Math.max(0, 1 - (eff - 2) * 2.5);
     return 1;
   });
+
+  // Per-slot style: active is the largest/whitest, slot ±1 is bright + big,
+  // slot ±2 is a softer light gray for the outer ring.
+  const fontSize = slotDist === 0 ? 32 : slotDist === 1 ? 28 : 22;
+  const fontWeight = slotDist === 0 ? 700 : 400;
+  const color =
+    slotDist === 0 ? '#ffffff' :
+    slotDist === 1 ? 'rgba(255,255,255,0.92)' :
+                     'rgba(255,255,255,0.7)';
 
   return (
     <motion.div
@@ -98,14 +114,14 @@ function NavItem({ index, item, dialPos, isActive, onTap, shifted, spacing }) {
         style={{
           fontFamily:
             'office-times-round, "Office Times Round", "Cormorant Garamond", "Times New Roman", serif',
-          fontSize: isActive ? 32 : 28,
-          fontWeight: isActive ? 700 : 400,
-          color: isActive ? '#ffffff' : 'rgba(255,255,255,0.85)',
+          fontSize,
+          fontWeight,
+          color,
           letterSpacing: '0.005em',
           whiteSpace: 'nowrap',
           lineHeight: 1,
           textAlign: 'center',
-          transition: 'color 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease',
+          transition: 'color 0.3s ease, font-size 0.3s ease, font-weight 0.3s ease',
         }}
       >
         {item.label}
@@ -196,7 +212,7 @@ export default function KioskDialNav({ activeIndex, onChange, items }) {
           height: 800,
           borderRadius: '50%',
           background: '#000000',
-          border: '1px solid rgba(120,120,120,1)',
+          border: '2px solid rgba(170,170,170,1)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -227,6 +243,7 @@ export default function KioskDialNav({ activeIndex, onChange, items }) {
           onTap={onTap(index)}
           shifted={false}
           spacing={spacing}
+          activeIndex={activeLogical}
         />
       ))}
       {items.map((item, index) => (
@@ -239,6 +256,7 @@ export default function KioskDialNav({ activeIndex, onChange, items }) {
           onTap={onTap(index)}
           shifted={true}
           spacing={spacing}
+          activeIndex={activeLogical}
         />
       ))}
     </div>

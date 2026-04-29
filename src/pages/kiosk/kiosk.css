@@ -352,18 +352,18 @@
   pointer-events: auto;
 }
 
-/* The sheet IS a duplicate of the bezel ellipse (1900×800), positioned so
-   only its top arc reaches up into the page. Z-index sits below nav-host
-   so the dial bezel/labels stay on top. */
+/* The sheet ellipse is intentionally MUCH wider than the page so its top
+   arc covers the full page width without page corners showing through.
+   Border colour matches the nav bezel for visual consistency. */
 .bottom-sheet {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 1900px;
+  width: 4000px;
   height: 800px;
   border-radius: 50%;
   background: #0a0a0a;
-  border: 0.5px solid rgba(40,40,40,1);
+  border: 2px solid rgba(170,170,170,1);
   transform: translateX(-50%) translateY(100%);
   transition: transform 0.55s cubic-bezier(0.2, 0.9, 0.2, 1);
   z-index: 35;
