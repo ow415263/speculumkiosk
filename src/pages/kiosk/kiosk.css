@@ -1,0 +1,749 @@
+/* SpecuFlux Kiosk — designed at fixed 1366×1024.
+   Office Times Round is a paid Lineto face — fallback chain approximates it. */
+
+.kiosk-root {
+  --serif:  'office-times-round', "Office Times Round",
+            "Cormorant Garamond", "Sorts Mill Goudy", "Times New Roman", serif;
+  --sans:   'Rethink Sans', system-ui, -apple-system, sans-serif;
+  --bg:     #000;
+  --fg:     #fff;
+  --bezel:  #0a0a0a;
+  --bezel-line: rgba(40,40,40,0.9);
+  --muted:  rgba(255,255,255,0.55);
+
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.kiosk-root *,
+.kiosk-root *::before,
+.kiosk-root *::after { box-sizing: border-box; }
+
+.kiosk-viewport {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+.kiosk-stage {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1366px;
+  height: 1024px;
+  overflow: hidden;
+  background: var(--bg);
+  transform-origin: 0 0;
+}
+
+.kiosk-page {
+  position: absolute;
+  inset: 0;
+  padding: 50px 62px 130px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  /* Scope each page's stacking context so carousel z-indexes (up to 100)
+     don't escape and beat the sheet/nav. */
+  isolation: isolate;
+}
+.kiosk-page.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Artifacts + App + Game + About pages: zero side padding so the carousel
+   host spans the full 1366px width and 50% lands on true page center. The
+   page-header is re-padded inline. */
+.kiosk-page.page-artifacts,
+.kiosk-page.page-app,
+.kiosk-page.game-page,
+.kiosk-page.about-page {
+  padding-left: 0;
+  padding-right: 0;
+}
+.kiosk-page.page-artifacts .page-header,
+.kiosk-page.page-app .page-header,
+.kiosk-page.game-page .page-header,
+.kiosk-page.about-page .page-header {
+  padding: 0 62px;
+}
+
+/* Small uppercase page label so users always know which flow they're on. */
+.page-title {
+  position: absolute;
+  top: 26px;
+  left: 70px;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  z-index: 10;
+  pointer-events: none;
+}
+.about-page .page-title { left: 80px; }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 60px;
+}
+.header-right {
+  max-width: 480px;
+  text-align: left;
+  margin-top: 20px;
+  position: relative;
+}
+.lede {
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.8);
+  margin: 0;
+  max-width: 460px;
+}
+
+/* Display titles */
+.display-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  color: #fff;
+  margin: 0;
+  line-height: 0.95;
+  letter-spacing: -0.005em;
+}
+.display-title .big {
+  font-size: 132px;
+  font-weight: 400;
+}
+.display-title .small {
+  font-size: 64px;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(255,255,255,0.92);
+  margin: 0 16px 0 8px;
+  vertical-align: -8px;
+}
+
+/* App page logo lockup: app icon + wordmark + tagline + meta */
+.sf-lockup {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.sf-app-icon {
+  width: 110px;
+  height: 110px;
+  display: block;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.5));
+}
+.sf-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sf-wordmark-img {
+  display: block;
+  height: 56px;
+  width: auto;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+}
+.sf-tagline {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.78);
+  letter-spacing: 0;
+  margin-top: 6px;
+}
+.sf-tagline-meta {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.42);
+  letter-spacing: 0;
+}
+
+/* Circular arrow button → opens the sign-up bottom sheet.
+   Lives at the kiosk-stage level so it sits in the same top-right slot on
+   every page. When the sheet opens, the button sits BEHIND the backdrop so
+   the darkening passes over it (it goes from bright white to dimmed). The
+   button still morphs into a pill — arrow stays anchored to the LEFT of the
+   pill while the rotating "thinking" words appear on the right. */
+.signup-arrow {
+  position: absolute;
+  top: 50px;
+  right: 62px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  z-index: 20;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
+  transition:
+    width 0.45s cubic-bezier(0.2, 0.9, 0.2, 1),
+    height 0.45s cubic-bezier(0.2, 0.9, 0.2, 1),
+    border-radius 0.45s ease,
+    background 0.3s ease,
+    filter 0.2s ease,
+    transform 0.15s ease;
+}
+.signup-arrow.is-active {
+  /* Right-anchored growth: keep the arrow on its original spot and grow
+     the pill leftward by anchoring via right: 70px (already set). */
+}
+.signup-arrow:not(.is-active):hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 12px 28px rgba(255,255,255,0.18));
+}
+.signup-arrow:not(.is-active):active { transform: translateY(0); }
+.signup-arrow.is-active {
+  width: 340px;
+  height: 96px;
+  border-radius: 48px;
+  background: #ffffff;
+  cursor: default;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,0.45));
+}
+
+/* Arrow icon sits on the LEFT edge of the button. Since the button is
+   anchored to the page via `right: 70px` and grows wider leftward, the arrow
+   visually shifts leftward as the pill expands — leaving room on the right
+   for the rotating thinking words. */
+.signup-arrow .arrow-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 96px;
+  height: 96px;
+  display: block;
+  pointer-events: none;
+}
+
+.thinking-text {
+  position: absolute;
+  left: 96px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 500;
+  color: #0a0a0a;
+  white-space: nowrap;
+  perspective: 600px;
+  transition: opacity 0.3s ease 0.15s;
+}
+.signup-arrow.is-active .thinking-text { opacity: 1; }
+.thinking-text-word {
+  position: absolute;
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: 0.005em;
+}
+
+/* Animated dark→light shimmer gradient overlay across the active pill. */
+.signup-arrow.is-active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.05) 30%,
+    rgba(0, 0, 0, 0.12) 50%,
+    rgba(0, 0, 0, 0.05) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  background-size: 250% 100%;
+  animation: button-shimmer 2.6s linear infinite;
+}
+@keyframes button-shimmer {
+  0% { background-position: 220% 0; }
+  100% { background-position: -120% 0; }
+}
+
+/* App page header: 2-column flex (lockup left, arrow right). */
+.kiosk-page.page-app .page-header {
+  align-items: center;
+  gap: 30px;
+}
+
+/* App page: stack houses the phone + annotation frame. The flow title now
+   lives outside the carousel (see .app-section-title) so it can be parked
+   on the left of the screen without scaling/rotating with the phone. */
+.phone-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  pointer-events: none;
+}
+.phone-frame {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-height: 0;
+  overflow: visible;
+}
+.phone-frame .phone-real {
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* Active phone's flow title, parked on the left side of the page in light
+   grey. Driven by ArcCarousel's onActiveChange callback. Lives in normal
+   page flow so it scrolls with the page (which is now scrollable for the
+   info-cards section below the carousel). */
+.app-section-title {
+  font-family: var(--sans);
+  font-size: 26px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  pointer-events: none;
+  padding: 24px 62px 0;
+  flex-shrink: 0;
+}
+
+
+/* Bottom sheet — same ellipse shape as the dial bezel, raised from behind it.
+   Backdrop darkens the area above the arc; the sheet itself is the ellipse. */
+.bottom-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 30;
+}
+.bottom-sheet-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* The sheet IS a duplicate of the bezel ellipse (1900×800), positioned so
+   only its top arc reaches up into the page. Z-index sits below nav-host
+   so the dial bezel/labels stay on top. */
+.bottom-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1900px;
+  height: 800px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  border: 0.5px solid rgba(40,40,40,1);
+  transform: translateX(-50%) translateY(100%);
+  transition: transform 0.55s cubic-bezier(0.2, 0.9, 0.2, 1);
+  z-index: 35;
+  pointer-events: none;
+  --drag-y: 0px;
+}
+.bottom-sheet.is-open {
+  transform: translateX(-50%) translateY(var(--drag-y));
+  pointer-events: auto;
+}
+.bottom-sheet.is-dragging {
+  transition: none;
+}
+
+.bottom-sheet-handle {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.55);
+  cursor: grab;
+  touch-action: none;
+  /* Larger invisible hit-area for easier drag start. */
+  padding: 16px 28px;
+  box-sizing: content-box;
+  background-clip: content-box;
+}
+.bottom-sheet-handle.is-dragging { cursor: grabbing; }
+
+/* Content sits in a centered column. The title gets generous top padding so
+   it clears the handle area; QR row sits well below the form. */
+.bottom-sheet-inner {
+  position: absolute;
+  top: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.bottom-sheet-title {
+  font-family: var(--serif);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 44px;
+  line-height: 1.05;
+  color: #fff;
+  margin: 0;
+}
+.bottom-sheet-title em {
+  font-style: italic;
+  font-weight: inherit;
+}
+.bottom-sheet-lede {
+  font-family: var(--sans);
+  font-size: 16px;
+  color: rgba(255,255,255,0.7);
+  max-width: 640px;
+  line-height: 1.45;
+  margin: 0 auto;
+}
+.bottom-sheet-form {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 32px;
+}
+.bottom-sheet-input {
+  width: 360px;
+  padding: 14px 24px;
+  font-family: var(--sans);
+  font-size: 17px;
+  color: #fff;
+  background: #1c1c1c;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  outline: none;
+}
+.bottom-sheet-input::placeholder { color: rgba(255,255,255,0.45); }
+.bottom-sheet-submit {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 600;
+  color: #000;
+  background: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+  cursor: pointer;
+}
+
+.bottom-sheet-qrs {
+  display: flex;
+  gap: 100px;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 70px;
+}
+.qr-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.qr-tile-label {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.92);
+}
+.qr-tile-img {
+  width: 130px;
+  height: 130px;
+  border-radius: 6px;
+  background: #fff;
+  padding: 6px;
+  display: block;
+}
+
+/* Phone screen (real screenshot inside iOS-shaped frame) */
+.phone-real {
+  width: 280px;
+  height: 100%;
+  border-radius: 38px;
+  overflow: hidden;
+  background: #000;
+  border: 2px solid rgba(255,255,255,0.06);
+  box-shadow:
+    0 30px 70px rgba(0,0,0,0.55),
+    0 8px 24px rgba(0,0,0,0.45),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+  position: relative;
+}
+.phone-real-screen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* QR image on App page */
+.qr {
+  width: 140px;
+  height: 140px;
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+  display: block;
+}
+
+/* Artifacts page header: BO logo + subheading (vertical lockup). */
+.artifacts-header {
+  display: block;
+  padding-right: 220px; /* leave room for the global signup-arrow on the right */
+}
+.bo-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.bo-logo {
+  display: block;
+  height: 110px;
+  width: auto;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.45));
+}
+.bo-subheading {
+  font-family: var(--sans);
+  font-size: 28px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  letter-spacing: 0.005em;
+}
+
+/* Per-figure annotations — small Rethink Sans labels with stub lines that
+   fade in (staggered) once their figure is in the spotlight, then hold a
+   subtle glitch animation. */
+.figure-annotation {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: rgba(255,255,255,0.78);
+  white-space: nowrap;
+  z-index: 5;
+}
+.figure-annotation.side-left {
+  flex-direction: row-reverse;
+}
+.figure-annotation-text {
+  display: inline-block;
+  padding: 0 8px;
+}
+.figure-annotation-line {
+  display: inline-block;
+  width: var(--line-len, 60px);
+  height: 1px;
+  background: rgba(255,255,255,0.42);
+  flex-shrink: 0;
+}
+.figure-annotation.is-active {
+  animation:
+    annotation-fade-in 0.55s cubic-bezier(0.2, 0.9, 0.2, 1) var(--reveal-delay, 0.5s) forwards,
+    annotation-glitch 4.6s steps(1, end) var(--glitch-delay, 1.4s) infinite;
+}
+@keyframes annotation-fade-in {
+  0%   { opacity: 0; transform: translateX(calc(-50% + var(--ann-x, 0px))) translateY(6px); }
+  100% { opacity: 1; transform: translateX(calc(-50% + var(--ann-x, 0px))) translateY(0); }
+}
+@keyframes annotation-glitch {
+  0%, 88%, 100% { transform: translateX(calc(-50% + var(--ann-x, 0px))) translateY(0); opacity: 1; }
+  89%           { transform: translateX(calc(-50% + var(--ann-x, 0px) - 2px)) translateY(0); opacity: 0.6; }
+  90%           { transform: translateX(calc(-50% + var(--ann-x, 0px) + 3px)) translateY(-1px); opacity: 1; }
+  91%           { transform: translateX(calc(-50% + var(--ann-x, 0px) - 1px)) translateY(1px); opacity: 0.85; }
+  92%           { transform: translateX(calc(-50% + var(--ann-x, 0px))) translateY(0); opacity: 1; }
+}
+
+/* Arc carousel host: bottom-anchored so figures sit just above the dial bezel
+   regardless of how tall the page-header pushed us down. */
+.arc-carousel-host {
+  flex: 1;
+  position: relative;
+  overflow: visible;
+  align-self: stretch;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 30px;
+}
+.arc-carousel-host > .arc-carousel {
+  flex-shrink: 0;
+}
+
+/* About page: SVG title at the top + infinite carousel of leader cards. */
+.about-header {
+  display: block;
+  padding-right: 220px; /* room for the global signup-arrow */
+}
+.cult-title-img {
+  display: block;
+  height: 140px;
+  width: auto;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45));
+}
+
+/* One leader card inside the carousel — portrait + name + role pill. */
+.leader-card {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  pointer-events: none;
+}
+/* Cream paper backdrop matches the textured background baked into Faiz's
+   PNG. It layers under each leader's transparent PNG so Owen / Deep get
+   the same rough paper look that Faiz already has. */
+.leader-portrait {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-image:
+    var(--portrait-img),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' preserveAspectRatio='none'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='200' height='200' fill='%23ddd2b5'/%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: cover, cover;
+  background-position: center bottom, center;
+  background-repeat: no-repeat, no-repeat;
+  background-color: #ddd2b5;
+}
+.leader-name {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 28px;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.005em;
+}
+.leader-role-pill {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.92);
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  padding: 14px 32px;
+  cursor: default;
+  white-space: nowrap;
+  pointer-events: auto;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.25);
+}
+
+/* Game page: SUB-HUMANOIDZ logo lockup at top-left, flat carousel of game
+   thumbnails below. Same full-width pattern as Artifacts/App. */
+.game-header {
+  display: block;
+  padding-right: 220px; /* room for the global signup-arrow */
+}
+.game-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.game-logo {
+  display: block;
+  height: 110px;
+  width: auto;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45));
+}
+.game-subheading {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  letter-spacing: 0.005em;
+}
+
+/* Game tile: square rounded thumbnail, sized by the carousel's baseHeight. */
+.game-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  pointer-events: none;
+}
+.game-frame {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 0;
+  overflow: visible;
+}
+.game-thumb {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 26px;
+  display: block;
+  box-shadow:
+    0 30px 70px rgba(0,0,0,0.55),
+    0 8px 24px rgba(0,0,0,0.45);
+}
+
+/* Nav anchored at bottom */
+.nav-host {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 100px;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+/* Idle hint */
+.idle-hint {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.18);
+  z-index: 100;
+  pointer-events: none;
+}
