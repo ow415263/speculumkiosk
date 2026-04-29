@@ -346,7 +346,8 @@ export function SignUpSheet({ open, onClose }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStatus('success');
       form.reset();
-      setTimeout(() => { setStatus('idle'); onClose(); }, 1100);
+      // Hold the success message on screen long enough to read.
+      setTimeout(() => { setStatus('idle'); onClose(); }, 3600);
     } catch (err) {
       console.error('Signup failed:', err);
       setStatus('error');
@@ -385,23 +386,30 @@ export function SignUpSheet({ open, onClose }) {
             Get on the whitelist for exclusive access to events, rare artifacts and experiences.
             Coming this summer.
           </p>
-          <form className="bottom-sheet-form" onSubmit={onSubmit}>
-            <input
-              type="email"
-              name="email"
-              placeholder="you@gmail.com"
-              className="bottom-sheet-input"
-              required
-              disabled={status === 'submitting'}
-            />
-            <button
-              type="submit"
-              className={`bottom-sheet-submit status-${status}`}
-              disabled={status === 'submitting' || status === 'success'}
-            >
-              {submitLabel}
-            </button>
-          </form>
+          {status === 'success' ? (
+            <div className="bottom-sheet-confirm" role="status" aria-live="polite">
+              <p className="bottom-sheet-confirm-title">Your email's been received.</p>
+              <p className="bottom-sheet-confirm-sub">We'll be in contact.</p>
+            </div>
+          ) : (
+            <form className="bottom-sheet-form" onSubmit={onSubmit}>
+              <input
+                type="email"
+                name="email"
+                placeholder="you@gmail.com"
+                className="bottom-sheet-input"
+                required
+                disabled={status === 'submitting'}
+              />
+              <button
+                type="submit"
+                className={`bottom-sheet-submit status-${status}`}
+                disabled={status === 'submitting'}
+              >
+                {submitLabel}
+              </button>
+            </form>
+          )}
           <div className="bottom-sheet-qrs">
             <div className="qr-tile">
               <span className="qr-tile-label">test the app</span>
@@ -480,9 +488,9 @@ export function AppPage() {
 }
 
 const LEADERS = [
-  { id: 'faiz', name: 'Faiz Kazi', role: 'Creative Director', img: ASSET('leader-faiz.png') },
-  { id: 'owen', name: 'Owen Campbell', role: 'App Designer', img: ASSET('leader-owen.png') },
-  { id: 'deep', name: 'Deep Grewal', role: 'Game Designer', img: ASSET('leader-deep.png') },
+  { id: 'faiz', name: 'Faiz Kazi', role: 'Creative Director', img: ASSET('leader-faiz.jpg') },
+  { id: 'owen', name: 'Owen Campbell', role: 'App Designer', img: ASSET('leader-owen.jpg') },
+  { id: 'deep', name: 'Deep Grewal', role: 'Game Designer', img: ASSET('leader-deep.jpg') },
 ];
 
 const LEADERS_INITIAL_INDEX = 1; // Owen centred by default

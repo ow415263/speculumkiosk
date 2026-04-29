@@ -461,6 +461,34 @@
   cursor: pointer;
 }
 
+/* Confirmation message that replaces the sign-up form on successful submit. */
+.bottom-sheet-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 32px;
+  animation: bottom-sheet-confirm-in 0.45s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+.bottom-sheet-confirm-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 28px;
+  color: #fff;
+  margin: 0;
+}
+.bottom-sheet-confirm-sub {
+  font-family: var(--sans);
+  font-size: 17px;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+}
+@keyframes bottom-sheet-confirm-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .bottom-sheet-qrs {
   display: flex;
   gap: 100px;
