@@ -53,44 +53,21 @@ function NavItem({ index, item, dialPos, isActive, onTap, shifted, spacing }) {
     const d = getDist(index, p);
     const eff = shifted ? d + N : d;
     const x = eff * spacing;
-    // +28 leaves more breathing room between the labels and the bezel edge.
-    return arcY(x) + 28;
+    // Slight extra offset so labels don't crash into the bezel edge.
+    return arcY(x) + 18;
   });
-  // Gentler scale decay so outer labels stay readable.
+  // Gentler scale decay so the slot ±2 labels stay legible.
   const scaleMV = useTransform(dialPos, (p) => {
     const d = getDist(index, p);
     const eff = Math.abs(shifted ? d + N : d);
     return Math.max(0.7, 1.0 - Math.min(eff, 2) * 0.10);
   });
-  // Keep slots 0/±1/±2 fully opaque; only slot ±2.5+ fades out.
   const opacityMV = useTransform(dialPos, (p) => {
     const d = getDist(index, p);
     const eff = Math.abs(shifted ? d + N : d);
     if (eff > HARD_OPACITY_CUTOFF) return 0;
     if (eff > 2) return Math.max(0, 1 - (eff - 2) * 2.5);
     return 1;
-  });
-  // Per-slot font size: active largest, ±1 nearly as big, ±2 smaller.
-  const fontSizeMV = useTransform(dialPos, (p) => {
-    const d = getDist(index, p);
-    const eff = Math.abs(shifted ? d + N : d);
-    if (eff < 0.5) return 32;
-    if (eff < 1.5) return 28;
-    return 24;
-  });
-  const fontWeightMV = useTransform(dialPos, (p) => {
-    const d = getDist(index, p);
-    const eff = Math.abs(shifted ? d + N : d);
-    return eff < 0.5 ? 700 : 400;
-  });
-  // Per-slot text alpha: active full white, ±1 bright (0.9), ±2 lighter
-  // gray (0.7) — visibly more legible than the old 0.55.
-  const colorMV = useTransform(dialPos, (p) => {
-    const d = getDist(index, p);
-    const eff = Math.abs(shifted ? d + N : d);
-    if (eff < 0.5) return 'rgb(255,255,255)';
-    if (eff < 1.5) return 'rgba(255,255,255,0.9)';
-    return 'rgba(255,255,255,0.7)';
   });
 
   return (
@@ -117,21 +94,22 @@ function NavItem({ index, item, dialPos, isActive, onTap, shifted, spacing }) {
         onTap();
       }}
     >
-      <motion.span
+      <span
         style={{
           fontFamily:
             'office-times-round, "Office Times Round", "Cormorant Garamond", "Times New Roman", serif',
-          fontSize: fontSizeMV,
-          fontWeight: fontWeightMV,
-          color: colorMV,
+          fontSize: isActive ? 32 : 28,
+          fontWeight: isActive ? 700 : 400,
+          color: isActive ? '#ffffff' : 'rgba(255,255,255,0.85)',
           letterSpacing: '0.005em',
           whiteSpace: 'nowrap',
           lineHeight: 1,
           textAlign: 'center',
+          transition: 'color 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease',
         }}
       >
         {item.label}
-      </motion.span>
+      </span>
     </motion.div>
   );
 }

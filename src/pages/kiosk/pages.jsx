@@ -229,12 +229,37 @@ export function ArtifactsPage() {
   );
 }
 
-function PhoneScreen({ annotations, isSpotlight }) {
+function PhoneScreen({ video, annotations, isSpotlight }) {
+  const videoRef = useRef(null);
+  // Only the spotlight video plays; ghosts pause + reset to first frame to
+  // save CPU/bandwidth and avoid them being out-of-sync with the active one.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (isSpotlight) {
+      el.currentTime = 0;
+      const playPromise = el.play();
+      if (playPromise && playPromise.catch) playPromise.catch(() => {});
+    } else {
+      el.pause();
+      el.currentTime = 0;
+    }
+  }, [isSpotlight]);
+
   return (
     <div className="phone-stack">
       <div className="phone-frame">
         <div className="phone-real">
-          <img src={ASSET('app-screen.png')} alt="" className="phone-real-screen" />
+          <video
+            ref={videoRef}
+            className="phone-real-screen"
+            src={ASSET(video)}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            disablePictureInPicture
+          />
         </div>
         {annotations && annotations.map((a, i) => (
           <FigureAnnotation key={a.id} annotation={a} index={i} active={!!isSpotlight} />
@@ -246,49 +271,47 @@ function PhoneScreen({ annotations, isSpotlight }) {
 
 const PHONE_FLOWS = [
   {
-    id: 'p1',
-    title: 'Tap In/Out',
+    id: 'add-events',
+    title: 'Add Events',
+    video: 'phone-add-events.mp4',
     annotations: [
-      { id: 'track', text: 'track your moves', side: 'left', x: -200, y: 420, lineLen: 70 },
-      { id: 'discover', text: 'discover more', side: 'right', x: 200, y: 380, lineLen: 70 },
-      { id: 'realtime', text: 'in real time', side: 'right', x: 200, y: 260, lineLen: 60 },
-      { id: 'cult', text: 'earn your cult status', side: 'left', x: -220, y: 160, lineLen: 80 },
+      { id: 'browse', text: 'browse what\'s on', side: 'left', x: -200, y: 420, lineLen: 70 },
+      { id: 'pin', text: 'pin to your night', side: 'right', x: 200, y: 380, lineLen: 70 },
+      { id: 'curate', text: 'curate the vibe', side: 'right', x: 200, y: 260, lineLen: 60 },
+      { id: 'lock', text: 'lock in the plan', side: 'left', x: -220, y: 160, lineLen: 80 },
     ],
   },
   {
-    id: 'p2',
-    title: 'Discover',
+    id: 'tap-in',
+    title: 'Tap In',
+    video: 'phone-tap-in.mp4',
     annotations: [
-      { id: 'curated', text: 'curated rituals', side: 'right', x: 200, y: 400, lineLen: 70 },
-      { id: 'whispers', text: 'whispers nearby', side: 'left', x: -200, y: 280, lineLen: 70 },
-      { id: 'tonight', text: 'just for tonight', side: 'right', x: 200, y: 160, lineLen: 70 },
+      { id: 'arrive', text: 'arrive on the dot', side: 'left', x: -200, y: 420, lineLen: 70 },
+      { id: 'broadcast', text: 'broadcast you\'re here', side: 'right', x: 200, y: 380, lineLen: 70 },
+      { id: 'live', text: 'live for the room', side: 'right', x: 200, y: 260, lineLen: 60 },
+      { id: 'status', text: 'cult status climbs', side: 'left', x: -220, y: 160, lineLen: 80 },
     ],
   },
   {
-    id: 'p3',
-    title: 'Inner Circle',
+    id: 'match-irl',
+    title: 'Match IRL',
+    video: 'phone-match-irl.mp4',
     annotations: [
-      { id: 'rsvp', text: 'rsvp by gut feel', side: 'left', x: -200, y: 400, lineLen: 70 },
-      { id: 'auras', text: 'see who\'s aura-matched', side: 'right', x: 220, y: 280, lineLen: 80 },
-      { id: 'forecast', text: 'mood forecast', side: 'left', x: -180, y: 160, lineLen: 70 },
+      { id: 'aura', text: 'aura-matched', side: 'left', x: -200, y: 420, lineLen: 70 },
+      { id: 'introduce', text: 'introduce yourself', side: 'right', x: 200, y: 380, lineLen: 70 },
+      { id: 'eye', text: 'eye contact, no app', side: 'right', x: 200, y: 260, lineLen: 60 },
+      { id: 'rituals', text: 'unlock rituals', side: 'left', x: -220, y: 160, lineLen: 80 },
     ],
   },
   {
-    id: 'p4',
-    title: 'Loot Drops',
+    id: 'tap-out',
+    title: 'Tap Out',
+    video: 'phone-tap-out.mp4',
     annotations: [
-      { id: 'fullmoon', text: 'full-moon only', side: 'right', x: 200, y: 400, lineLen: 70 },
-      { id: 'limited', text: 'limited to 12', side: 'left', x: -180, y: 280, lineLen: 70 },
-      { id: 'access', text: 'cult-tier access', side: 'right', x: 200, y: 160, lineLen: 70 },
-    ],
-  },
-  {
-    id: 'p5',
-    title: 'Wonder',
-    annotations: [
-      { id: 'ambient', text: 'ambient prompts', side: 'left', x: -200, y: 400, lineLen: 70 },
-      { id: 'no-feed', text: 'no feed, no scroll', side: 'right', x: 210, y: 280, lineLen: 70 },
-      { id: 'sleep', text: 'sleeps when you do', side: 'left', x: -200, y: 160, lineLen: 70 },
+      { id: 'reflect', text: 'reflect on the night', side: 'left', x: -200, y: 420, lineLen: 70 },
+      { id: 'log', text: 'log the moments', side: 'right', x: 200, y: 380, lineLen: 70 },
+      { id: 'mood', text: 'mood forecast', side: 'right', x: 200, y: 260, lineLen: 60 },
+      { id: 'archive', text: 'archive your trail', side: 'left', x: -220, y: 160, lineLen: 80 },
     ],
   },
 ];
@@ -419,7 +442,8 @@ export function SignUpSheet({ open, onClose }) {
   );
 }
 
-const APP_INITIAL_INDEX = 2;
+// Start on Tap In (index 1) by default — feels like the core moment.
+const APP_INITIAL_INDEX = 1;
 
 export function AppPage() {
   const [activeIndex, setActiveIndex] = useState(APP_INITIAL_INDEX);
@@ -429,6 +453,7 @@ export function AppPage() {
     height: 620,
     render: ({ isSpotlight }) => (
       <PhoneScreen
+        video={s.video}
         annotations={s.annotations}
         isSpotlight={isSpotlight}
       />
